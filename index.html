@@ -13,7 +13,7 @@ header h1 span{color:#c8102e}
 .hdr-right{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .hdr-right input,.hdr-right select{padding:5px 8px;border:1px solid #444;border-radius:4px;background:#333;color:white;font-size:12px;font-family:inherit}
 .hdr-right label{font-size:11px;color:#aaa}
-#searchBox{width:180px}
+#searchBox{width:260px}
 #searchBox::placeholder{color:#777}
 .dealer-bar{background:#fff;border-bottom:1px solid #ddd;padding:10px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:12px}
 .dealer-bar input{padding:4px 8px;border:1px solid #ccc;border-radius:3px;font-size:12px;font-family:inherit;width:150px}
@@ -72,7 +72,7 @@ footer button{padding:7px 16px;border:none;border-radius:4px;font-family:inherit
 <header>
 <h1><span>Blish-Mize</span> Fall 2026 Drop Ship Promos</h1>
 <div class="hdr-right">
-<div><input type="text" id="searchBox" placeholder="Search items..." oninput="filterPromos()"></div>
+<div><input type="text" id="searchBox" placeholder="Search by Mfg#, Whse#, or Description..." oninput="filterPromos()"></div>
 </div>
 </header>
 <div class="dealer-bar">
@@ -407,6 +407,7 @@ function updateTotals() {
 
 function filterPromos() {
   const q = document.getElementById('searchBox').value.toLowerCase().trim();
+  
   PROMOS.forEach((p, pi) => {
     let vis = 0;
     p.items.forEach((item, ii) => {
@@ -415,14 +416,23 @@ function filterPromos() {
       row.style.display = match ? '' : 'none';
       if(match) vis++;
     });
+    
+    // Update tab to show match count when searching
+    const tab = document.getElementById('ptab-'+pi);
     if(q) {
-      document.getElementById('psec-'+pi).classList.toggle('active', vis > 0);
+      tab.textContent = p.code + ' ' + p.name + (vis > 0 ? ' ('+vis+')' : '');
+      // Keep active tab visible, also show other tabs with matches
+      if(pi === activePromo) {
+        document.getElementById('psec-'+pi).classList.add('active');
+      } else {
+        document.getElementById('psec-'+pi).classList.toggle('active', vis > 0);
+      }
+    } else {
+      tab.textContent = p.code + ' ' + p.name;
+      // Reset - only show active promo
+      document.getElementById('psec-'+pi).classList.toggle('active', pi === activePromo);
     }
   });
-  if(!q) {
-    document.querySelectorAll('.promo-section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('psec-'+activePromo).classList.add('active');
-  }
 }
 
 function getOrderData() {
