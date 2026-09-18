@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blish-Mize Fall 2026 — Drop Ship Promo Order Tool</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:13px;padding-bottom:70px}
+header{background:#1a1a1a;color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+header h1{font-size:17px;font-weight:700;letter-spacing:-0.3px}
+header h1 span{color:#c8102e}
+.hdr-right{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hdr-right input,.hdr-right select{padding:5px 8px;border:1px solid #444;border-radius:4px;background:#333;color:white;font-size:12px;font-family:inherit}
+.hdr-right label{font-size:11px;color:#aaa}
+#searchBox{width:180px}
+#searchBox::placeholder{color:#777}
+.dealer-bar{background:#fff;border-bottom:1px solid #ddd;padding:10px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:12px}
+.dealer-bar input{padding:4px 8px;border:1px solid #ccc;border-radius:3px;font-size:12px;font-family:inherit;width:150px}
+.dealer-bar label{font-weight:600;margin-right:4px}
+.sticker-box{border:2px dashed #999;padding:6px 14px;border-radius:4px;color:#999;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;min-width:160px;min-height:36px;display:flex;align-items:center;justify-content:center}
+nav{background:#fff;border-bottom:2px solid #ddd;padding:0 10px;display:flex;gap:0;overflow-x:auto;position:sticky;top:50px;z-index:90}
+nav button{padding:8px 12px;border:none;background:none;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;color:#888;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s}
+nav button:hover{color:#1a1a1a}
+nav button.active{color:#c8102e;border-bottom-color:#c8102e}
+.promo-section{display:none;padding:0}
+.promo-section.active{display:block}
+.cs-footer{background:#f9f9f6;border-top:2px solid #1a1a1a;padding:8px 20px}
+.cs-table{width:100%;border-collapse:collapse;font-size:11px}
+.cs-table td{padding:5px 10px;border:1px solid #ccc;vertical-align:middle}
+.cs-table tr:first-child td{background:#f0f0ea;font-weight:500}
+.promo-hdr{background:#fff;padding:10px 20px;border-bottom:1px solid #ddd;font-size:12px}
+.promo-hdr h2{font-size:14px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.btn-clear{padding:4px 12px;border:1px solid #ccc;border-radius:4px;background:#fff;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;color:#666;transition:all .15s}
+.btn-clear:hover{background:#fce4ec;border-color:#c8102e;color:#c8102e}
+.promo-hdr .meta{color:#666;display:flex;gap:16px;flex-wrap:wrap}
+.promo-hdr .meta b{color:#1a1a1a}
+.promo-hdr .warn{display:none;color:#c8102e;font-weight:700;margin-top:4px;font-size:12px}
+.promo-hdr .warn.show{display:block}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#f0f0ea;padding:7px 5px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.3px;color:#666;border-bottom:2px solid #ddd;position:sticky;top:90px;z-index:80;white-space:nowrap}
+th.r{text-align:right}
+th.c{text-align:center}
+tbody tr{border-bottom:1px solid #eee}
+tbody tr:hover{background:#fafaf6}
+tbody tr.has-qty{background:#fff8e1!important}
+td{padding:5px;vertical-align:middle}
+td.mono{font-family:monospace;font-size:11px}
+td.r{text-align:right;font-family:monospace;font-size:11px}
+td.c{text-align:center}
+.qty-input{width:52px;padding:4px;text-align:center;border:1px solid #ccc;border-radius:3px;font-family:monospace;font-size:12px}
+.qty-input:focus{outline:none;border-color:#c8102e;box-shadow:0 0 0 2px rgba(200,16,46,0.15)}
+.line-total{font-weight:600;font-family:monospace;font-size:11px;min-width:60px;text-align:right}
+.tier-active{background:#e8f5e9!important;font-weight:700}
+footer{position:fixed;bottom:0;left:0;right:0;background:#1a1a1a;color:white;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:100;font-size:12px;flex-wrap:wrap;gap:8px}
+footer .tots{display:flex;gap:20px;flex-wrap:wrap}
+footer .tots span{color:#aaa}
+footer .tots strong{color:white;font-size:14px}
+footer button{padding:7px 16px;border:none;border-radius:4px;font-family:inherit;font-weight:600;cursor:pointer;font-size:12px;color:white}
+.btn-print{background:#c8102e}
+.btn-print:hover{background:#a00d24}
+.btn-xl{background:#217346}
+.btn-xl:hover{background:#1a5c38}
+.btn-pdf{background:#1565c0}
+.btn-pdf:hover{background:#0d47a1}
+@media print{header,nav,footer,.hdr-right,.btn-clear{display:none!important}.dealer-bar{border:none;padding:10px 20px}.promo-section{display:none!important}.promo-section.has-orders{display:block!important;page-break-after:always}tbody tr:not(.has-qty){display:none}table{font-size:10px}thead th{position:static}body{background:white;padding:0}.sticker-box{border:2px dashed #333}}
+@media(max-width:768px){header{padding:8px 10px}header h1{font-size:14px}nav button{padding:6px 8px;font-size:10px}}
+</style>
+</head>
+<body>
+<header>
+<h1><span>Blish-Mize</span> Fall 2026 Drop Ship Promos</h1>
+<div class="hdr-right">
+<div><input type="text" id="searchBox" placeholder="Search items..." oninput="filterPromos()"></div>
+</div>
+</header>
+<div class="dealer-bar">
+<div><label>PO#:</label><input type="text" id="poNumber" placeholder="PO number"></div>
+<div><label>Ship Date:</label><input type="date" id="shipDate"></div>
+<div><label>Billing:</label><span style="font-weight:600;color:#1a1a1a">Through Blish-Mize</span></div>
+<div class="sticker-box">ATTACH DEALER STICKER</div>
+</div>
+<nav id="promoTabs"></nav>
+<main id="mainContent"></main>
+<footer>
+<div class="tots">
+<div><span>Active Promo:</span> <strong id="activePromoTotal">$0.00</strong></div>
+<div><span>All Promos Total:</span> <strong id="grandTotal">$0.00</strong></div>
+<div><span>Items:</span> <strong id="totalItems">0</strong></div>
+</div>
+<div>
+<button class="btn-xl" onclick="exportExcel()">⬇ Excel</button>
+<button class="btn-pdf" onclick="exportPDF()">⬇ PDF</button>
+<button class="btn-print" onclick="prepPrint()">Print</button>
+</div>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+const PROMOS = [{"code": "5003010", "name": "Stops Rust 5-In-1 Spray", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "376902", "whse": "", "desc": "Gloss Dark Hunter Green", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376891", "whse": "", "desc": "Gloss Hunter Green", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376890", "whse": "", "desc": "Gloss Dark Walnut", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376894", "whse": "3061702", "desc": "Gloss Orange", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376899", "whse": "", "desc": "Gloss Sunrise Red", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376897", "whse": "", "desc": "Gloss Smoke Gray", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376895", "whse": "", "desc": "Gloss Regal Red", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376884", "whse": "3061652", "desc": "Gloss Black", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376888", "whse": "", "desc": "Gloss Charcoal Gray", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "393369", "whse": "", "desc": "Gloss Elderberry", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376903", "whse": "", "desc": "Gloss Kona Brown", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376898", "whse": "", "desc": "Gloss Sunburst Yellow", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376885", "whse": "", "desc": "Gloss Crystal Clear", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376904", "whse": "", "desc": "Gloss Navy Blue", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376896", "whse": "", "desc": "Gloss Sail Blue", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376892", "whse": "", "desc": "Gloss Leather Brown", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376889", "whse": "", "desc": "Gloss Cherry", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376900", "whse": "", "desc": "Gloss Almond", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376905", "whse": "", "desc": "Gloss Sand", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "393370", "whse": "", "desc": "Gloss Peppercorn", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384753", "whse": "", "desc": "Gloss Laurel Green", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376886", "whse": "3061660", "desc": "Gloss White", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "380397", "whse": "", "desc": "Gloss Ink Black", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376887", "whse": "", "desc": "Gloss Antique White", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376907", "whse": "", "desc": "Gloss Maui Blue", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376906", "whse": "", "desc": "Gloss Tuscan Sun", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376901", "whse": "", "desc": "Gloss Burgundy", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384745", "whse": "", "desc": "Gloss Pure White", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "393371", "whse": "", "desc": "Gloss Cypress Green", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376911", "whse": "", "desc": "SG Anodized Bronze", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376910", "whse": "", "desc": "SG White", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376909", "whse": "", "desc": "SG Black", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376857", "whse": "", "desc": "Flat Brown", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376856", "whse": "", "desc": "Flat White", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376855", "whse": "", "desc": "Flat Black", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "376868", "whse": "", "desc": "Flat Clear", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "398666", "whse": "", "desc": "Matte Northern Lights", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "398667", "whse": "", "desc": "Matte Roasted Squash", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "398668", "whse": "", "desc": "Matte Spiced Cocoa", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "398669", "whse": "", "desc": "Matte Oatmilk", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376873", "whse": "", "desc": "Satin Dark Brown", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376878", "whse": "", "desc": "Satin Dark Taupe", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "383421", "whse": "", "desc": "Satin Earthy Green", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376869", "whse": "", "desc": "Satin Black", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376875", "whse": "", "desc": "Satin Shell White", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376881", "whse": "", "desc": "Satin Sapphire", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376882", "whse": "", "desc": "Satin Peaceful Blue", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376870", "whse": "", "desc": "Satin White", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "385008", "whse": "", "desc": "Satin Brick Red", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376879", "whse": "", "desc": "Satin French Beige", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376880", "whse": "", "desc": "Satin Heritage Red", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "380420", "whse": "", "desc": "Satin Canyon Green", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376872", "whse": "", "desc": "Satin Coastal Gray", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376874", "whse": "", "desc": "Satin Hunter Green", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "383424", "whse": "", "desc": "Satin Arctic White", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376877", "whse": "", "desc": "Satin Chestnut Brown", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "383423", "whse": "", "desc": "Satin Blue Haven", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376883", "whse": "", "desc": "Satin Clear", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "376876", "whse": "", "desc": "Satin Driftwood", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "383422", "whse": "", "desc": "Satin Midnight Blue", "pk": 6, "prices": [8.37, 6.78, 6.4]}, {"mfg": "384755", "whse": "", "desc": "Rusty Metal Primer", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384756", "whse": "", "desc": "Red Auto Primer", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384757", "whse": "", "desc": "Dark Gray Auto Primer", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384758", "whse": "", "desc": "Clean Metal Primer", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384759", "whse": "", "desc": "Universal Bond Primer", "pk": 6, "prices": [8.14, 6.6, 6.23]}, {"mfg": "384760", "whse": "", "desc": "Lt Gray Auto Primer", "pk": 6, "prices": [8.14, 6.6, 6.23]}], "save": "23%", "cs": {"t2": "D=90/85 T2", "cond": "Cond. Group ZX - SPP2605", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003011", "name": "Zinsser Primers", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500", "$1,000", "$2,000"], "items": [{"mfg": "2001", "whse": "6275168", "desc": "BE 1-2-3 Primer 1G", "pk": 4, "prices": [25.16, 21.51, 20.38, 19.24]}, {"mfg": "285085", "whse": "3048022", "desc": "BE 1-2-3 Gray Primer 1G", "pk": 2, "prices": [25.16, 21.51, 20.38, 19.24]}, {"mfg": "2000", "whse": "6069389", "desc": "BE 1-2-3 Primer 5G", "pk": 1, "prices": [120.1, 102.69, 97.28, 91.88]}, {"mfg": "285090", "whse": "", "desc": "BE 1-2-3 Gray Primer 5G", "pk": 1, "prices": [120.1, 102.69, 97.28, 91.88]}, {"mfg": "2025", "whse": "", "desc": "BE 1-2-3 Primer 2.5G Pail", "pk": 1, "prices": [62.32, 53.29, 50.48, 47.68]}, {"mfg": "373358", "whse": "6230387", "desc": "Hidz Primer 1G", "pk": 2, "prices": [20.43, 17.47, 16.55, 15.63]}, {"mfg": "373694", "whse": "", "desc": "Hidz Primer 5G", "pk": 1, "prices": [97.47, 83.33, 78.95, 74.56]}], "save": "24%", "cs": {"t2": "T2=95/90/85", "cond": "", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003012", "name": "Professional Sprays & Gallons", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "7570838", "whse": "", "desc": "HP Enamel SP Almond", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7579838", "whse": "6186050", "desc": "HP Enamel SP Black", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7578838", "whse": "6186068", "desc": "HP Enamel SP Flat Black", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7590838", "whse": "6186019", "desc": "HP Enamel SP Flat White", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7592838", "whse": "6186027", "desc": "HP Enamel SP Gloss White", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7582838", "whse": "6186076", "desc": "HP Enamel SP Gray Primer", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7569838", "whse": "6186092", "desc": "HP Enamel SP Red Primer", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7587838", "whse": "6186043", "desc": "HP Enamel SP Machine Gray", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7515838", "whse": "6186035", "desc": "HP Enamel SP Aluminum", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7524838", "whse": "6255269", "desc": "HP Enamel SP Safety Blue", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7543838", "whse": "6255285", "desc": "HP Enamel SP Safety Yellow", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7555838", "whse": "6250252", "desc": "HP Enamel SP Safety Orange", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7564838", "whse": "6255301", "desc": "HP Enamel SP Safety Red", "pk": 6, "prices": [9.91, 8.47, 8.03]}, {"mfg": "7524402", "whse": "6131122", "desc": "HP Enamel 1G Gloss Safety Blue", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7564402", "whse": "6171268", "desc": "HP Enamel 1G Gloss Safety Red", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7543402", "whse": "6171243", "desc": "HP Enamel 1G Gloss Safety Yellow", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7555402", "whse": "6131114", "desc": "HP Enamel 1G Gloss Safety Orange", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7779402", "whse": "4724977", "desc": "HP Enamel 1G Gloss Black", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7792402", "whse": "4726097", "desc": "HP Enamel 1G Gloss White", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7776402", "whse": "4724845", "desc": "HP Enamel 1G Flat Black", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "7790402", "whse": "4726048", "desc": "HP Enamel 1G Flat White", "pk": 2, "prices": [57.9, 49.5, 46.9]}, {"mfg": "215964", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Royal Blue", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215965", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Regal Red", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215967", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Leather Brown", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215960", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss White", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215959", "whse": "", "desc": "Oil-Based 400VOC 1G Flat Black", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215958", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Black", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215963", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Safety Yellow", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215962", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Safety Red", "pk": 2, "prices": [62.51, 53.45, 50.63]}, {"mfg": "215961", "whse": "", "desc": "Oil-Based 400VOC 1G Gloss Safety Orange", "pk": 2, "prices": [62.51, 53.45, 50.63]}], "save": "19%", "cs": {"t2": "T2=95/90", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003030", "name": "Painter's Touch 2X Spray", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "334023", "whse": "6113278", "desc": "2X Gloss Almond", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334054", "whse": "6113203", "desc": "2X Gloss Golden Sunset", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334024", "whse": "6112973", "desc": "2X Gloss Apple Red", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334025", "whse": "6113302", "desc": "2X Gloss Berry Pink", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334026", "whse": "6113344", "desc": "2X Gloss Black", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334027", "whse": "6113476", "desc": "2X Gloss Brilliant Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334028", "whse": "6112940", "desc": "2X Gloss Candy Pink", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334029", "whse": "6113179", "desc": "2X Gloss Clear", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334030", "whse": "6113385", "desc": "2X Gloss Colonial Red", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334031", "whse": "6113377", "desc": "2X Gloss Dark Gray", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334032", "whse": "6113039", "desc": "2X Gloss Deep Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334033", "whse": "6113120", "desc": "2X Gloss Grape", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334034", "whse": "6112908", "desc": "2X Gloss Hunter Green", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334035", "whse": "6112957", "desc": "2X Gloss Ivory", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334036", "whse": "6113757", "desc": "2X Gloss Key Lime", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334037", "whse": "6112882", "desc": "2X Gloss Khaki", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334038", "whse": "6113542", "desc": "2X Gloss Kona Brown", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334039", "whse": "6113468", "desc": "2X Gloss Meadow Green", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334040", "whse": "6112866", "desc": "2X Gloss Cottage White", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334041", "whse": "6113401", "desc": "2X Gloss Navy Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334042", "whse": "6113682", "desc": "2X Gloss Purple", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334043", "whse": "6113427", "desc": "2X Gloss Orange", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334045", "whse": "6113526", "desc": "2X Gloss Spa Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334046", "whse": "6113062", "desc": "2X Gloss Sun Yellow", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334048", "whse": "6113054", "desc": "2X Gloss White", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334049", "whse": "6112999", "desc": "2X Gloss Winter Gray", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334050", "whse": "6113534", "desc": "2X Gloss Seaside", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334051", "whse": "6113245", "desc": "2X Gloss Cranberry", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334052", "whse": "3070810", "desc": "2X Gloss Coral", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334053", "whse": "3070828", "desc": "2X Gloss Ocean Mist", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334055", "whse": "6112874", "desc": "2X Gloss Spring Green", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334097", "whse": "6113013", "desc": "2X SG Black", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334098", "whse": "6113583", "desc": "2X SG White", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334017", "whse": "6113005", "desc": "2X Gray Primer", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334018", "whse": "6113237", "desc": "2X Red Primer", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334019", "whse": "6112981", "desc": "2X White Primer", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334020", "whse": "6112965", "desc": "2X Flat Black", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334021", "whse": "6113021", "desc": "2X Flat White", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334022", "whse": "6113211", "desc": "2X Matte Clear", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334058", "whse": "6113294", "desc": "2X Aluminum", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "346955", "whse": "6113070", "desc": "2X Gloss Marigold", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334059", "whse": "6113740", "desc": "2X Satin Aqua", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334061", "whse": "6113674", "desc": "2X Satin Cinnamon", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334062", "whse": "6113492", "desc": "2X Satin Claret Wine", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334063", "whse": "6113450", "desc": "2X Satin Colonial Red", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334064", "whse": "6113393", "desc": "2X Satin Dark Walnut", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334065", "whse": "", "desc": "2X Satin Eden", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334066", "whse": "6113559", "desc": "2X Satin Espresso", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334067", "whse": "6113096", "desc": "2X Satin Fossil", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334068", "whse": "6113617", "desc": "2X Satin French Lilac", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334069", "whse": "6113716", "desc": "2X Satin Granite", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334070", "whse": "6113104", "desc": "2X Satin Green Apple", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334071", "whse": "6113575", "desc": "2X Satin Heirloom White", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334072", "whse": "6113732", "desc": "2X Satin Hunt Club Green", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334073", "whse": "6113328", "desc": "2X Satin Ivory Silk", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334074", "whse": "6113690", "desc": "2X Satin Lagoon", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334075", "whse": "6112916", "desc": "2X Satin Moss Green", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334076", "whse": "6113419", "desc": "2X Satin Nutmeg", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334077", "whse": "6113369", "desc": "2X Satin Oregano", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334080", "whse": "6113609", "desc": "2X Satin Wildflower Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334081", "whse": "3070885", "desc": "2X Satin Lemongrass", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334083", "whse": "6112932", "desc": "2X Satin Warm Caramel", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334084", "whse": "6113708", "desc": "2X Satin Poppy Red", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334085", "whse": "3070893", "desc": "2X Satin Oasis Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334086", "whse": "6113658", "desc": "2X Satin Stone Gray", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334087", "whse": "6113567", "desc": "2X Satin Magenta", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334088", "whse": "3070901", "desc": "2X Satin French Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334089", "whse": "3070919", "desc": "2X Satin Rustic Orange", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334090", "whse": "6113773", "desc": "2X Satin Vintage Teal", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334091", "whse": "6113252", "desc": "2X Satin Midnight Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334092", "whse": "6113112", "desc": "2X Satin Smokey Beige", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334093", "whse": "6113310", "desc": "2X Satin Ink Blue", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334094", "whse": "6113484", "desc": "2X Satin Apple Red", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334095", "whse": "6113187", "desc": "2X Satin Seaside", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "346950", "whse": "6113138", "desc": "2X Satin Paprika", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "346951", "whse": "6113047", "desc": "2X Satin Canyon Black", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "346952", "whse": "6112924", "desc": "2X Satin Clear", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "346953", "whse": "6112890", "desc": "2X Satin London Gray", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "383200", "whse": "3070992", "desc": "2X Satin Iris", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "383201", "whse": "3071008", "desc": "2X Satin Eucalyptus", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "383202", "whse": "3071016", "desc": "2X Satin Iris", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "383203", "whse": "3070877", "desc": "2X Satin Latte", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "350372", "whse": "3070935", "desc": "2X Satin Forest Green", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "350373", "whse": "3070927", "desc": "2X Satin Charcoal Gray", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "334060", "whse": "", "desc": "2X Satin Strawflower", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "3340749", "whse": "6113781", "desc": "2X Satin Summer Squash", "pk": 6, "prices": [5.61, 4.55, 4.29]}, {"mfg": "346938", "whse": "", "desc": "2X Satin Blossom White", "pk": 6, "prices": [5.61, 4.55, 4.29]}], "save": "23%", "cs": {"t2": "T2=90/85", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003031", "name": "Stops Rust Aerosols", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "214084", "whse": "6319610", "desc": "SR Gloss Orange", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "248568", "whse": "", "desc": "SR Gloss Cherry", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7794830", "whse": "4725693", "desc": "SR Gloss Antique White", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "347026", "whse": "", "desc": "SR Gloss Poppy Pink", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7786830", "whse": "4725636", "desc": "SR Smoke Gray", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7779830", "whse": "4725016", "desc": "SR Gloss Black", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7776830", "whse": "4724886", "desc": "SR Flat Black", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7790830", "whse": "4726089", "desc": "SR Flat White", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7792830", "whse": "4726139", "desc": "SR Gloss White", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7771830", "whse": "4725321", "desc": "SR Sand", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7770830", "whse": "3821329", "desc": "SR Almond", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7724830", "whse": "6190672", "desc": "SR Sail Blue", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7727830", "whse": "4725156", "desc": "SR Royal Blue", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7747830", "whse": "6190698", "desc": "SR Sunburst Yellow", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7765830", "whse": "4725792", "desc": "SR Regal Red", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7738830", "whse": "4725842", "desc": "SR Hunter Green", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7775830", "whse": "4725685", "desc": "SR Leather Brown", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7784830", "whse": "6013619", "desc": "SR Charcoal Gray", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7789830", "whse": "6013627", "desc": "SR Canvas White", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7763830", "whse": "6190706", "desc": "SR Carnival Red", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7762830", "whse": "6169767", "desc": "SR Sunrise Red", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7701830", "whse": "4725107", "desc": "SR Crystal Clear", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7754830", "whse": "6082275", "desc": "SR Anodized Bronze", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "248636", "whse": "6338636", "desc": "SR Oil Rub Bronze", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7582838", "whse": "6186076", "desc": "SR Gray Primer", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7569838", "whse": "6186092", "desc": "SR Red Primer", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7780830", "whse": "6185409", "desc": "SR Clean Metal Primer", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7785830", "whse": "4726485", "desc": "SR Cold Galvanizing", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7584838", "whse": "3720018", "desc": "SR Bright Galvanized", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7750830", "whse": "6013429", "desc": "SR High Heat Aluminum", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7751830", "whse": "6013437", "desc": "SR High Heat White", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7716830", "whse": "6190839", "desc": "SR High Heat Silver", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7778830", "whse": "4726204", "desc": "SR BBQ Black", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "210849", "whse": "6338826", "desc": "SR Hammered Copper", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "210880", "whse": "6338834", "desc": "SR Hammered Brown", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7210830", "whse": "6080774", "desc": "SR Hammered Gold", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7213830", "whse": "6013544", "desc": "SR Hammered Silver", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7214830", "whse": "4727251", "desc": "SR Hammered Gray", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7215830", "whse": "6013569", "desc": "SR Hammered Black", "pk": 6, "prices": [7.56, 6.12, 5.78]}, {"mfg": "7218830", "whse": "6083877", "desc": "SR Hammered Dk Bronze", "pk": 6, "prices": [7.56, 6.12, 5.78]}], "save": "23%", "cs": {"t2": "T2=90/85", "cond": "Cond. Group ZX - SPP2605", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003032", "name": "Concrete Floor Coatings", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "60003", "whse": "6340319", "desc": "RockSolid Gray 1-Car Kit", "pk": 1, "prices": [136.99, 127.21, 120.36]}, {"mfg": "293513", "whse": "", "desc": "RockSolid Gray 2.5-Car Kit", "pk": 1, "prices": [225.99, 209.87, 198.57]}, {"mfg": "251965", "whse": "6053599", "desc": "EpoxyShield Gray 1G Kit", "pk": 2, "prices": [80.73, 74.99, 70.99]}, {"mfg": "251870", "whse": "", "desc": "EpoxyShield Gray 2.5G Kit", "pk": 2, "prices": [125.99, 117.03, 110.79]}, {"mfg": "327081", "whse": "", "desc": "EpoxyShield Dk Gray 1G Kit", "pk": 2, "prices": [80.73, 74.99, 70.99]}, {"mfg": "365186", "whse": "", "desc": "EpoxyShield Dk Gray 2.5G Kit", "pk": 2, "prices": [125.99, 117.03, 110.79]}, {"mfg": "251966", "whse": "6053607", "desc": "EpoxyShield Tan 1G Kit", "pk": 2, "prices": [80.73, 74.99, 70.99]}, {"mfg": "252625", "whse": "6329247", "desc": "EpoxyShield Tint Base 1G Kit", "pk": 2, "prices": [80.73, 74.99, 70.99]}, {"mfg": "319536", "whse": "6053508", "desc": "EpoxyShield Deep Tint 1G Kit", "pk": 2, "prices": [80.73, 74.99, 70.99]}, {"mfg": "292514", "whse": "6326979", "desc": "Premium Clear Coating", "pk": 2, "prices": [139.95, 130.0, 123.05]}, {"mfg": "391283", "whse": "", "desc": "Basement Kit Tint Base 1G", "pk": 2, "prices": [80.73, 74.99, 70.99]}], "save": "16%", "cs": {"t2": "T2=95/93", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003033", "name": "Industrial Choice Marking", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "201516V", "whse": "6080907", "desc": "M1600 APWA Orange", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "203022V", "whse": "6080881", "desc": "M1600 APWA Blue", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "203025V", "whse": "6080899", "desc": "M1600 Hi-Viz Yellow", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "203027V", "whse": "6080949", "desc": "M1600 Fluor Orange", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "203029V", "whse": "6080923", "desc": "M1600 Red", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "203030V", "whse": "6080964", "desc": "M1600 White", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "1601838", "whse": "", "desc": "M1600 Clear", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "1634838", "whse": "6080915", "desc": "M1600 Green", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "1661838", "whse": "6080956", "desc": "M1600 Pink", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "1875838", "whse": "", "desc": "M1600 Black", "pk": 12, "prices": [4.41, 3.58, 3.38]}, {"mfg": "205233", "whse": "", "desc": "MC1800 APWA Orange", "pk": 12, "prices": [6.01, 4.87, 4.6]}, {"mfg": "205234", "whse": "", "desc": "MC1800 APWA Yellow", "pk": 12, "prices": [6.01, 4.87, 4.6]}, {"mfg": "205235", "whse": "", "desc": "MC1800 APWA Red", "pk": 12, "prices": [6.01, 4.87, 4.6]}, {"mfg": "205236", "whse": "", "desc": "MC1800 APWA Blue", "pk": 12, "prices": [6.01, 4.87, 4.6]}, {"mfg": "205237", "whse": "", "desc": "MC1800 APWA White", "pk": 12, "prices": [6.01, 4.87, 4.6]}, {"mfg": "264692", "whse": "", "desc": "M1400 Construction White", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264693", "whse": "", "desc": "M1400 Construction Clear", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264694", "whse": "", "desc": "M1400 Construction Blue", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264695", "whse": "", "desc": "M1400 Construction Yellow", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264696", "whse": "", "desc": "M1400 Construction Orange", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264697", "whse": "", "desc": "M1400 Construction Red", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264698", "whse": "", "desc": "M1400 Construction Green", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "264699", "whse": "", "desc": "M1400 Construction Pink", "pk": 12, "prices": [3.8, 3.08, 2.91]}, {"mfg": "2548838", "whse": "6171201", "desc": "Striping Yellow 18oz", "pk": 6, "prices": [7.67, 6.22, 5.87]}, {"mfg": "1691838", "whse": "", "desc": "Striping White 18oz", "pk": 6, "prices": [7.67, 6.22, 5.87]}], "save": "23%", "cs": {"t2": "D=95/90 (T2)", "cond": "", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003037", "name": "Ready Seal Show Window", "valid": "8/24 - 10/15/2026", "min_order": 2500, "min_skus": 8, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match, 8 SKUs Min, Save Up To 30%", "tiers": ["Regular", "Special"], "items": [{"mfg": "369954", "whse": "6081020", "desc": "Ready Seal 1G Clear", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370010", "whse": "6081038", "desc": "Ready Seal 1G Natural", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370011", "whse": "6081046", "desc": "Ready Seal 1G Golden Pine", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370012", "whse": "6081053", "desc": "Ready Seal 1G Nat Cedar", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "115", "whse": "6081061", "desc": "Ready Seal 1G Pecan", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370015", "whse": "6081079", "desc": "Ready Seal 1G Redwood", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "125", "whse": "6081087", "desc": "Ready Seal 1G Dark Walnut", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370021", "whse": "6081095", "desc": "Ready Seal 1G Mahogany", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370026", "whse": "6080162", "desc": "Ready Seal 1G Mission Brown", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "370029", "whse": "6080139", "desc": "Ready Seal 1G Burnt Hickory", "pk": 4, "prices": [35.66, 29.8]}, {"mfg": "500", "whse": "6081103", "desc": "Ready Seal 5G Clear", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "505", "whse": "6081129", "desc": "Ready Seal 5G Natural", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "510", "whse": "6081137", "desc": "Ready Seal 5G Golden Pine", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "370045", "whse": "6081160", "desc": "Ready Seal 5G Nat Cedar", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "515", "whse": "6081178", "desc": "Ready Seal 5G Pecan", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "520", "whse": "6081186", "desc": "Ready Seal 5G Redwood", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "525", "whse": "6081194", "desc": "Ready Seal 5G Dark Walnut", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "530", "whse": "6081202", "desc": "Ready Seal 5G Mahogany", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "535", "whse": "6080154", "desc": "Ready Seal 5G Mission Brown", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "545", "whse": "6080147", "desc": "Ready Seal 5G Burnt Hickory", "pk": 1, "prices": [166.83, 139.54]}, {"mfg": "401752", "whse": "6080857", "desc": "Ready Seal Turbo Natural", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401753", "whse": "6080873", "desc": "Ready Seal Turbo Pecan", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401754", "whse": "6081210", "desc": "Ready Seal Turbo Dark Walnut", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401755", "whse": "6081228", "desc": "Ready Seal Turbo Nat Cedar", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401756", "whse": "6081269", "desc": "Ready Seal Turbo Redwood", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401757", "whse": "6081277", "desc": "Ready Seal Turbo Mahogany", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401758", "whse": "6081285", "desc": "Ready Seal Turbo Burnt Hickory", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "401759", "whse": "6080865", "desc": "Ready Seal Turbo Mission Brown", "pk": 6, "prices": [14.34, 11.99]}, {"mfg": "407", "whse": "6053490", "desc": "Ready Seal Staining Brush 7\"", "pk": 6, "prices": [22.73, 19.0]}, {"mfg": "410", "whse": "6080832", "desc": "Ready Seal Bright Wood Brightener", "pk": 4, "prices": [20.81, 17.4]}, {"mfg": "412", "whse": "6080790", "desc": "Ready Seal Remove 1G Remover", "pk": 4, "prices": [23.36, 19.52]}, {"mfg": "414", "whse": "6080808", "desc": "Ready Seal Clean 1G Cleaner", "pk": 4, "prices": [16.26, 13.59]}], "save": "30%", "cs": {"t2": "T2=95", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003038", "name": "Ready Seal At-Show", "valid": "9/17 - 9/19/2026", "min_order": 1500, "min_skus": 8, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match, 8 SKUs Min", "tiers": ["Regular", "Special"], "items": [{"mfg": "369954", "whse": "6081020", "desc": "Ready Seal 1G Clear", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370010", "whse": "6081038", "desc": "Ready Seal 1G Natural", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370011", "whse": "6081046", "desc": "Ready Seal 1G Golden Pine", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370012", "whse": "6081053", "desc": "Ready Seal 1G Nat Cedar", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "115", "whse": "6081061", "desc": "Ready Seal 1G Pecan", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370015", "whse": "6081079", "desc": "Ready Seal 1G Redwood", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "125", "whse": "6081087", "desc": "Ready Seal 1G Dark Walnut", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370021", "whse": "6081095", "desc": "Ready Seal 1G Mahogany", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370026", "whse": "6080162", "desc": "Ready Seal 1G Mission Brown", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "370029", "whse": "6080139", "desc": "Ready Seal 1G Burnt Hickory", "pk": 4, "prices": [35.66, 29.18]}, {"mfg": "500", "whse": "6081103", "desc": "Ready Seal 5G Clear", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "505", "whse": "6081129", "desc": "Ready Seal 5G Natural", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "510", "whse": "6081137", "desc": "Ready Seal 5G Golden Pine", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "370045", "whse": "6081160", "desc": "Ready Seal 5G Nat Cedar", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "515", "whse": "6081178", "desc": "Ready Seal 5G Pecan", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "520", "whse": "6081186", "desc": "Ready Seal 5G Redwood", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "525", "whse": "6081194", "desc": "Ready Seal 5G Dark Walnut", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "530", "whse": "6081202", "desc": "Ready Seal 5G Mahogany", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "535", "whse": "6080154", "desc": "Ready Seal 5G Mission Brown", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "545", "whse": "6080147", "desc": "Ready Seal 5G Burnt Hickory", "pk": 1, "prices": [166.83, 136.53]}, {"mfg": "401752", "whse": "6080857", "desc": "Ready Seal Turbo Natural", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401753", "whse": "6080873", "desc": "Ready Seal Turbo Pecan", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401754", "whse": "6081210", "desc": "Ready Seal Turbo Dark Walnut", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401755", "whse": "6081228", "desc": "Ready Seal Turbo Nat Cedar", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401756", "whse": "6081269", "desc": "Ready Seal Turbo Redwood", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401757", "whse": "6081277", "desc": "Ready Seal Turbo Mahogany", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401758", "whse": "6081285", "desc": "Ready Seal Turbo Burnt Hickory", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "401759", "whse": "6080865", "desc": "Ready Seal Turbo Mission Brown", "pk": 6, "prices": [14.34, 11.74]}, {"mfg": "407", "whse": "6053490", "desc": "Ready Seal Staining Brush 7\"", "pk": 6, "prices": [22.73, 19.0]}, {"mfg": "410", "whse": "6080832", "desc": "Ready Seal Bright Wood Brightener", "pk": 4, "prices": [20.81, 17.4]}, {"mfg": "412", "whse": "6080790", "desc": "Ready Seal Remove 1G Remover", "pk": 4, "prices": [23.36, 19.52]}, {"mfg": "414", "whse": "6080808", "desc": "Ready Seal Clean 1G Cleaner", "pk": 4, "prices": [16.26, 13.59]}], "save": "17%", "cs": {"t2": "T2=93", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/26", "must": "Must Select Items"}}, {"code": "5003039", "name": "Ready Seal NEW CUSTOMERS", "valid": "9/17 - 9/19/2026", "min_order": 2500, "min_skus": 8, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match, 8 SKUs Min, NEW CUSTOMERS ONLY", "tiers": ["Regular", "Special"], "items": [{"mfg": "369954", "whse": "6081020", "desc": "Ready Seal 1G Clear", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370010", "whse": "6081038", "desc": "Ready Seal 1G Natural", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370011", "whse": "6081046", "desc": "Ready Seal 1G Golden Pine", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370012", "whse": "6081053", "desc": "Ready Seal 1G Nat Cedar", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "115", "whse": "6081061", "desc": "Ready Seal 1G Pecan", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370015", "whse": "6081079", "desc": "Ready Seal 1G Redwood", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "125", "whse": "6081087", "desc": "Ready Seal 1G Dark Walnut", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370021", "whse": "6081095", "desc": "Ready Seal 1G Mahogany", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370026", "whse": "6080162", "desc": "Ready Seal 1G Mission Brown", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "370029", "whse": "6080139", "desc": "Ready Seal 1G Burnt Hickory", "pk": 4, "prices": [35.66, 25.04]}, {"mfg": "500", "whse": "6081103", "desc": "Ready Seal 5G Clear", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "505", "whse": "6081129", "desc": "Ready Seal 5G Natural", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "510", "whse": "6081137", "desc": "Ready Seal 5G Golden Pine", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "370045", "whse": "6081160", "desc": "Ready Seal 5G Nat Cedar", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "515", "whse": "6081178", "desc": "Ready Seal 5G Pecan", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "520", "whse": "6081186", "desc": "Ready Seal 5G Redwood", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "525", "whse": "6081194", "desc": "Ready Seal 5G Dark Walnut", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "530", "whse": "6081202", "desc": "Ready Seal 5G Mahogany", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "535", "whse": "6080154", "desc": "Ready Seal 5G Mission Brown", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "545", "whse": "6080147", "desc": "Ready Seal 5G Burnt Hickory", "pk": 1, "prices": [166.83, 117.15]}, {"mfg": "401752", "whse": "6080857", "desc": "Ready Seal Turbo Natural", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401753", "whse": "6080873", "desc": "Ready Seal Turbo Pecan", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401754", "whse": "6081210", "desc": "Ready Seal Turbo Dark Walnut", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401755", "whse": "6081228", "desc": "Ready Seal Turbo Nat Cedar", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401756", "whse": "6081269", "desc": "Ready Seal Turbo Redwood", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401757", "whse": "6081277", "desc": "Ready Seal Turbo Mahogany", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401758", "whse": "6081285", "desc": "Ready Seal Turbo Burnt Hickory", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "401759", "whse": "6080865", "desc": "Ready Seal Turbo Mission Brown", "pk": 6, "prices": [14.34, 10.07]}, {"mfg": "407", "whse": "6053490", "desc": "Ready Seal Staining Brush 7\"", "pk": 6, "prices": [22.73, 15.97]}, {"mfg": "410", "whse": "6080832", "desc": "Ready Seal Bright Wood Brightener", "pk": 4, "prices": [20.81, 14.61]}, {"mfg": "412", "whse": "6080790", "desc": "Ready Seal Remove 1G Remover", "pk": 4, "prices": [23.36, 16.41]}, {"mfg": "414", "whse": "6080808", "desc": "Ready Seal Clean 1G Cleaner", "pk": 4, "prices": [16.26, 11.42]}], "save": "30%", "cs": {"t2": "T2=79.8", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/26", "must": "Must Select Items"}}, {"code": "5003040", "name": "Stops Rust Rolling Rack", "valid": "8/24 - 10/15/2026", "min_order": 500, "min_skus": 0, "dating": "90 Days", "freight": "Prepaid", "rules": "Mix & Match, Rack free w/$750+", "tiers": ["Regular", "$500+", "$750+"], "items": [{"mfg": "7779504", "whse": "4724985", "desc": "SR Gloss Black QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7792504", "whse": "4726105", "desc": "SR Gloss White QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7776502", "whse": "4724852", "desc": "SR Flat Black QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7790502", "whse": "4726055", "desc": "SR Flat White QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7769502", "whse": "4725172", "desc": "SR Rusty Metal Primer QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7780502", "whse": "6185417", "desc": "SR Clean Metal Primer QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7765502", "whse": "4725768", "desc": "SR Regal Red QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7738502", "whse": "4725818", "desc": "SR Hunter Green QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7724502", "whse": "4726261", "desc": "SR Sail Blue QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7747502", "whse": "6190730", "desc": "SR Sunburst Yellow QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7771502", "whse": "4725297", "desc": "SR Sand QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7770502", "whse": "6136618", "desc": "SR Almond QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7775502", "whse": "4725651", "desc": "SR Leather Brown QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "7784502", "whse": "6131171", "desc": "SR Charcoal QT", "pk": 4, "prices": [15.33, 12.43, 11.74]}, {"mfg": "394191", "whse": "", "desc": "Rolling Rack Display (Free w/ $750+)", "pk": 1, "prices": [0, 0, 0]}], "save": "23%", "cs": {"t2": "T2=90/85, 394191 95/90", "cond": "Cond. Group ZX", "rsvd": "RSVD 5/2026", "must": "Must Select Items"}}, {"code": "5003045", "name": "Pink Stuff Display", "valid": "Thru 12/31/2026", "min_order": 500, "min_skus": 4, "dating": "60 Days", "freight": "Prepaid", "rules": "Mix & Match, 4 SKUs Min", "tiers": ["Regular", "Special"], "items": [{"mfg": "23705", "whse": "6340335", "desc": "Multi-Pur Cleaner 17.6oz Paste", "pk": 12, "prices": [5.33, 4.46]}, {"mfg": "23675", "whse": "6340459", "desc": "All Pur Cleanr Crm 16.9oz", "pk": 12, "prices": [5.03, 4.21]}, {"mfg": "825029", "whse": "", "desc": "Squeezable Paste 300G", "pk": 8, "prices": [5.33, 4.46]}, {"mfg": "82382", "whse": "6340343", "desc": "Multi-Pur Cleaner 25.4oz", "pk": 10, "prices": [5.03, 4.21]}, {"mfg": "82383", "whse": "6340350", "desc": "Bathrm Cleaner Foam 25.4oz", "pk": 10, "prices": [5.03, 4.21]}, {"mfg": "824996", "whse": "", "desc": "Foaming Toilet Powder", "pk": 12, "prices": [5.22, 4.36]}, {"mfg": "823773", "whse": "", "desc": "Dual Scrubber & Sponge", "pk": 12, "prices": [3.1, 2.59]}], "save": "16%", "cs": {"t2": "T2=95", "cond": "", "rsvd": "RSVD 5/2026", "must": "Must Select Qty"}}];
+let activePromo = 0;
+
+function init() {
+  const nav = document.getElementById('promoTabs');
+  const main = document.getElementById('mainContent');
+  
+  PROMOS.forEach((p, pi) => {
+    const btn = document.createElement('button');
+    btn.textContent = p.code + ' ' + p.name;
+    btn.onclick = () => switchPromo(pi);
+    if(pi===0) btn.className='active';
+    btn.id='ptab-'+pi;
+    nav.appendChild(btn);
+    
+    const sec = document.createElement('div');
+    sec.className='promo-section'+(pi===0?' active':'');
+    sec.id='psec-'+pi;
+    
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className='promo-hdr';
+    hdr.innerHTML = '<h2><span>'+p.code+' — '+p.name+'</span><button class="btn-clear" onclick="clearPromo('+pi+')">✕ Clear Form</button></h2>'+
+      '<div class="meta">'+
+      '<div><b>Save:</b> '+p.save+'</div>'+
+      '<div><b>Min Order:</b> $'+p.min_order.toLocaleString()+'</div>'+
+      (p.min_skus?'<div><b>Min SKUs:</b> '+p.min_skus+'</div>':'')+
+      '<div><b>Dating:</b> '+p.dating+'</div>'+
+      '<div><b>Freight:</b> '+p.freight+'</div>'+
+      '<div><b>Valid:</b> '+p.valid+'</div>'+
+      '<div><b>Rules:</b> '+p.rules+'</div>'+
+      '</div>'+
+      '<div class="warn" id="warn-'+pi+'"></div>';
+    
+    const csInfo = document.createElement('div');
+    csInfo.className = 'cs-footer';
+    csInfo.innerHTML = '<table class="cs-table"><tr>'+
+      '<td><b>'+p.code+'</b></td>'+
+      '<td><b>'+(p.cs.t2||'')+'</b></td>'+
+      '<td>'+(p.cs.cond||'')+'</td>'+
+      '<td><b>'+(p.cs.must||'')+'</b></td>'+
+      '</tr><tr>'+
+      '<td>Offer Valid: '+p.valid+'</td>'+
+      '<td>'+(p.cs.rsvd||'')+'</td>'+
+      '<td colspan="2" style="font-size:10px">Note: Coop and/or Distributor adders may apply to drop-ship orders. ACA PaintCare Recovery Fees may apply</td>'+
+      '</tr></table>';
+    sec.appendChild(hdr);
+    
+    // Table
+    const numTiers = p.tiers.length;
+    let thPrices = '';
+    p.tiers.forEach((t,ti) => { thPrices += '<th class="r">'+t+'</th>'; });
+    
+    const tbl = document.createElement('table');
+    tbl.innerHTML = '<thead><tr><th>Mfg#</th><th>Whse#</th><th>Description</th><th class="c">Case Pk</th>'+
+      thPrices+'<th class="c" style="width:55px">Qty</th><th class="r" style="width:70px">Line $</th></tr></thead>';
+    
+    const tbody = document.createElement('tbody');
+    p.items.forEach((item, ii) => {
+      const tr = document.createElement('tr');
+      tr.id='prow-'+pi+'-'+ii;
+      tr.dataset.search=(item.mfg+' '+item.desc+' '+(item.whse||'')).toLowerCase();
+      
+      let priceCells = '';
+      item.prices.forEach((pr,ti) => {
+        priceCells += '<td class="r" id="pcell-'+pi+'-'+ii+'-'+ti+'">$'+pr.toFixed(2)+'</td>';
+      });
+      
+      tr.innerHTML = '<td class="mono">'+item.mfg+'</td>'+
+        '<td class="mono">'+(item.whse||'—')+'</td>'+
+        '<td>'+item.desc+'</td>'+
+        '<td class="c">'+item.pk+'</td>'+
+        priceCells+
+        '<td class="c"><input type="number" class="qty-input" min="0" step="1" value="" '+
+        'data-pi="'+pi+'" data-ii="'+ii+'" data-pk="'+item.pk+'" '+
+        'onchange="qtyChanged(this)" oninput="qtyChanged(this)"></td>'+
+        '<td class="line-total" id="plt-'+pi+'-'+ii+'"></td>';
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    sec.appendChild(tbl);
+    sec.appendChild(csInfo);
+    main.appendChild(sec);
+  });
+}
+
+function clearPromo(pi) {
+  document.querySelectorAll('.qty-input[data-pi="'+pi+'"]').forEach(inp => {
+    inp.value = '';
+  });
+  PROMOS[pi].items.forEach((item, ii) => {
+    const row = document.getElementById('prow-'+pi+'-'+ii);
+    row.classList.remove('has-qty');
+    document.getElementById('plt-'+pi+'-'+ii).textContent = '';
+    item.prices.forEach((pr, ti) => {
+      const cell = document.getElementById('pcell-'+pi+'-'+ii+'-'+ti);
+      if(cell) cell.classList.remove('tier-active');
+    });
+  });
+  const warn = document.getElementById('warn-'+pi);
+  warn.innerHTML = '';
+  warn.className = 'warn';
+  updateTotals();
+}
+
+function switchPromo(pi) {
+  document.querySelectorAll('#promoTabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.promo-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('ptab-'+pi).classList.add('active');
+  document.getElementById('psec-'+pi).classList.add('active');
+  activePromo = pi;
+  updateTotals();
+}
+
+function getActivePrice(pi, ii) {
+  const p = PROMOS[pi];
+  const item = p.items[ii];
+  // Calculate promo subtotal to determine tier
+  let promoTotal = 0;
+  document.querySelectorAll('.qty-input[data-pi="'+pi+'"]').forEach(inp => {
+    const q = parseInt(inp.value)||0;
+    const i2 = parseInt(inp.dataset.ii);
+    if(q>0) promoTotal += q * PROMOS[pi].items[i2].prices[PROMOS[pi].items[i2].prices.length-1];
+  });
+  
+  // Determine which tier based on total
+  const tiers = p.tiers;
+  const prices = item.prices;
+  if(prices.length <= 2) return prices[prices.length-1]; // simple promo, use special price
+  
+  // For multi-tier: $500/$750/$1000/$2000 thresholds
+  if(prices.length === 4) {
+    if(promoTotal >= 2000) return prices[3];
+    if(promoTotal >= 1000) return prices[2];
+    if(promoTotal >= 500) return prices[1];
+    return prices[0];
+  }
+  // 3 tiers: reg/$500/$750
+  if(promoTotal >= 750) return prices[2];
+  if(promoTotal >= 500) return prices[1];
+  return prices[0];
+}
+
+function qtyChanged(input) {
+  const pi = parseInt(input.dataset.pi);
+  const ii = parseInt(input.dataset.ii);
+  const pk = parseInt(input.dataset.pk);
+  let qty = parseInt(input.value)||0;
+  
+  // Enforce case pack minimum - round up to nearest case
+  if(qty > 0 && qty < pk) { qty = pk; input.value = pk; }
+  else if(qty > 0 && qty % pk !== 0) { qty = Math.ceil(qty/pk)*pk; input.value = qty; }
+  
+  const row = document.getElementById('prow-'+pi+'-'+ii);
+  const ltEl = document.getElementById('plt-'+pi+'-'+ii);
+  
+  if(qty > 0) {
+    row.classList.add('has-qty');
+  } else {
+    row.classList.remove('has-qty');
+    ltEl.textContent = '';
+  }
+  
+  // Recalculate all line totals for this promo (tier may have changed)
+  recalcPromo(pi);
+  updateTotals();
+}
+
+function recalcPromo(pi) {
+  const p = PROMOS[pi];
+  // First pass: compute raw total at lowest tier to determine actual tier
+  let rawTotal = 0;
+  let skuCount = 0;
+  const qtyMap = {};
+  
+  document.querySelectorAll('.qty-input[data-pi="'+pi+'"]').forEach(inp => {
+    const q = parseInt(inp.value)||0;
+    const ii = parseInt(inp.dataset.ii);
+    qtyMap[ii] = q;
+    if(q > 0) {
+      skuCount++;
+      // Use best available price for threshold calc
+      rawTotal += q * p.items[ii].prices[p.items[ii].prices.length-1];
+    }
+  });
+  
+  // Determine active tier index
+  let tierIdx = 0;
+  if(p.tiers.length === 4) {
+    if(rawTotal >= 2000) tierIdx = 3;
+    else if(rawTotal >= 1000) tierIdx = 2;
+    else if(rawTotal >= 500) tierIdx = 1;
+  } else if(p.tiers.length === 3) {
+    if(rawTotal >= 750) tierIdx = 2;
+    else if(rawTotal >= 500) tierIdx = 1;
+  } else {
+    tierIdx = rawTotal >= p.min_order ? 1 : 0;
+  }
+  
+  // Second pass: apply correct prices and highlight active tier
+  let actualTotal = 0;
+  p.items.forEach((item, ii) => {
+    const q = qtyMap[ii] || 0;
+    const priceIdx = Math.min(tierIdx, item.prices.length-1);
+    const price = item.prices[priceIdx];
+    const lt = q * price;
+    
+    // Highlight active tier column
+    item.prices.forEach((pr, ti) => {
+      const cell = document.getElementById('pcell-'+pi+'-'+ii+'-'+ti);
+      if(cell) {
+        cell.classList.toggle('tier-active', ti === priceIdx && q > 0);
+      }
+    });
+    
+    const ltEl = document.getElementById('plt-'+pi+'-'+ii);
+    if(q > 0) {
+      ltEl.textContent = '$'+lt.toFixed(2);
+      actualTotal += lt;
+    } else {
+      ltEl.textContent = '';
+    }
+  });
+  
+  // Check requirements
+  const warn = document.getElementById('warn-'+pi);
+  const warnings = [];
+  if(actualTotal > 0 && actualTotal < p.min_order) {
+    warnings.push('⚠ Order is $'+actualTotal.toFixed(2)+' — minimum is $'+p.min_order.toLocaleString());
+  }
+  if(p.min_skus && skuCount > 0 && skuCount < p.min_skus) {
+    warnings.push('⚠ '+skuCount+' SKUs selected — minimum is '+p.min_skus);
+  }
+  warn.innerHTML = warnings.join('<br>');
+  warn.className = 'warn' + (warnings.length ? ' show' : '');
+  
+  return { total: actualTotal, items: skuCount };
+}
+
+function updateTotals() {
+  let grandTotal = 0;
+  let grandItems = 0;
+  let activeTotal = 0;
+  
+  PROMOS.forEach((p, pi) => {
+    let ptotal = 0;
+    document.querySelectorAll('.qty-input[data-pi="'+pi+'"]').forEach(inp => {
+      const q = parseInt(inp.value)||0;
+      if(q > 0) {
+        grandItems++;
+        const ii = parseInt(inp.dataset.ii);
+        const lt = document.getElementById('plt-'+pi+'-'+ii);
+        if(lt && lt.textContent) {
+          ptotal += parseFloat(lt.textContent.replace('$',''));
+        }
+      }
+    });
+    grandTotal += ptotal;
+    if(pi === activePromo) activeTotal = ptotal;
+  });
+  
+  document.getElementById('activePromoTotal').textContent = '$'+activeTotal.toFixed(2);
+  document.getElementById('grandTotal').textContent = '$'+grandTotal.toFixed(2);
+  document.getElementById('totalItems').textContent = grandItems;
+}
+
+function filterPromos() {
+  const q = document.getElementById('searchBox').value.toLowerCase().trim();
+  PROMOS.forEach((p, pi) => {
+    let vis = 0;
+    p.items.forEach((item, ii) => {
+      const row = document.getElementById('prow-'+pi+'-'+ii);
+      const match = !q || row.dataset.search.includes(q);
+      row.style.display = match ? '' : 'none';
+      if(match) vis++;
+    });
+    if(q) {
+      document.getElementById('psec-'+pi).classList.toggle('active', vis > 0);
+    }
+  });
+  if(!q) {
+    document.querySelectorAll('.promo-section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('psec-'+activePromo).classList.add('active');
+  }
+}
+
+function getOrderData() {
+  const dealer = '';
+  const po = document.getElementById('poNumber').value||'';
+  const shipDate = document.getElementById('shipDate').value||'';
+  const promoOrders = [];
+  let grandTotal = 0, grandItems = 0;
+  
+  PROMOS.forEach((p, pi) => {
+    const ordered = [];
+    let ptotal = 0;
+    document.querySelectorAll('.qty-input[data-pi="'+pi+'"]').forEach(inp => {
+      const q = parseInt(inp.value)||0;
+      if(q > 0) {
+        const ii = parseInt(inp.dataset.ii);
+        const item = p.items[ii];
+        const lt = parseFloat(document.getElementById('plt-'+pi+'-'+ii).textContent.replace('$',''))||0;
+        ordered.push({...item, qty:q, lineTotal:lt, unitPrice: lt/q});
+        ptotal += lt;
+      }
+    });
+    if(ordered.length > 0) {
+      promoOrders.push({code:p.code, name:p.name, valid:p.valid, min_order:p.min_order, cs:p.cs,
+        min_skus:p.min_skus, dating:p.dating, items:ordered, subtotal:ptotal});
+      grandTotal += ptotal;
+      grandItems += ordered.length;
+    }
+  });
+  return {dealer, po, shipDate, promoOrders, grandTotal, grandItems};
+}
+
+function prepPrint() {
+  let hasAny = false;
+  PROMOS.forEach((p, pi) => {
+    let hasOrders = false;
+    document.querySelectorAll('.qty-input[data-pi="'+pi+'"]').forEach(inp => {
+      if(parseInt(inp.value)>0) hasOrders = true;
+    });
+    document.getElementById('psec-'+pi).classList.toggle('has-orders', hasOrders);
+    if(hasOrders) hasAny = true;
+  });
+  if(!hasAny) { alert('No items ordered.'); return; }
+  window.print();
+}
+
+function exportExcel() {
+  const data = getOrderData();
+  if(data.grandItems===0){alert('No items ordered.');return;}
+  
+  const wb = XLSX.utils.book_new();
+  
+  data.promoOrders.forEach(po => {
+    const rows = [
+      ['Blish-Mize Fall 2026 Drop Ship Order'],
+      ['Promo Code:', po.code, 'Program:', po.name],
+      ['PO#:', data.po, 'Ship Date:', data.shipDate],
+      ['Billing:', 'Through Blish-Mize', 'Valid:', po.valid, 'Dating:', po.dating],
+      ['Min Order:', '$'+po.min_order],
+      [po.code, po.cs?po.cs.t2:'', po.cs?po.cs.cond:'', po.cs?po.cs.must:''],
+      ['Offer Valid:', po.valid, po.cs?po.cs.rsvd:'', 'Note: Coop/Distributor adders may apply. PaintCare Fees may apply'],
+      [],
+      ['Mfg#','Whse#','Description','Case Pack','Unit Price','Qty','Line Total'],
+    ];
+    po.items.forEach(item => {
+      rows.push([item.mfg, item.whse||'', item.desc, item.pk, item.unitPrice.toFixed(2), item.qty, item.lineTotal.toFixed(2)]);
+    });
+    rows.push([]);
+    rows.push(['','','','','Subtotal:','','$'+po.subtotal.toFixed(2)]);
+    
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:12},{wch:10},{wch:35},{wch:8},{wch:10},{wch:6},{wch:12}];
+    const safeName = (po.code+' '+po.name).substring(0,31);
+    XLSX.utils.book_append_sheet(wb, ws, safeName);
+  });
+  
+  const sumRows = [['Blish-Mize Fall 2026 Drop Ship Order Summary'],
+    ['PO#:', data.po, 'Ship Date:', data.shipDate],[]];
+  sumRows.push(['Promo Code','Program','Items','Subtotal']);
+  data.promoOrders.forEach(po => {
+    sumRows.push([po.code, po.name, po.items.length, '$'+po.subtotal.toFixed(2)]);
+  });
+  sumRows.push([]);
+  sumRows.push(['','GRAND TOTAL','', '$'+data.grandTotal.toFixed(2)]);
+  const sumWs = XLSX.utils.aoa_to_sheet(sumRows);
+  sumWs['!cols'] = [{wch:12},{wch:30},{wch:8},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, sumWs, 'Summary');
+  
+  const fn = 'BlishMize_DropShip'+(data.po?'_'+data.po:'')+'.xlsx';
+  XLSX.writeFile(wb, fn.replace(/\s/g,'_'));
+}
+
+function exportPDF() {
+  const data = getOrderData();
+  if(data.grandItems===0){alert('No items ordered.');return;}
+  
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF('p','pt','letter');
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 40;
+  
+  function drawSticker() {
+    doc.setDrawColor(150);
+    doc.setLineDash([3,3]);
+    doc.rect(pageW-180, 15, 165, 40);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('ATTACH DEALER STICKER', pageW-97, 39, {align:'center'});
+    doc.setLineDash([]);
+    doc.setTextColor(0);
+  }
+  
+  drawSticker();
+  
+  doc.setFontSize(16);
+  doc.setFont(undefined,'bold');
+  doc.text('Blish-Mize Fall 2026 Drop Ship Order', 40, y);
+  y += 18;
+  doc.setFontSize(10);
+  doc.setFont(undefined,'normal');
+  if(data.po) { doc.text('PO#: '+data.po, 40, y); y+=14; }
+  if(data.shipDate) { doc.text('Ship Date: '+data.shipDate, 40, y); y+=14; }
+  doc.text('Billing: Through Blish-Mize', 40, y); y+=14;
+  doc.text('Date: '+new Date().toLocaleDateString(), 40, y); y+=20;
+  
+  data.promoOrders.forEach((po, idx) => {
+    if(y > 680) { doc.addPage(); drawSticker(); y = 40; }
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined,'bold');
+    doc.text(po.code+' — '+po.name, 40, y);
+    y += 14;
+    doc.setFontSize(8);
+    doc.setFont(undefined,'normal');
+    doc.text('Valid: '+po.valid+' | Dating: '+po.dating+' | Min: $'+po.min_order, 40, y);
+    y+=10;
+    if(po.cs){doc.setFontSize(7);doc.text(po.code+' | '+(po.cs.t2||'')+' | '+(po.cs.cond||'')+' | '+(po.cs.must||'')+' | '+(po.cs.rsvd||''), 40, y);doc.setFontSize(8);}
+    y += 12;
+    
+    const tableData = po.items.map(item => [
+      item.mfg, item.whse||'', item.desc, item.pk,
+      '$'+item.unitPrice.toFixed(2), item.qty, '$'+item.lineTotal.toFixed(2)
+    ]);
+    
+    doc.autoTable({
+      startY: y,
+      head: [['Mfg#','Whse#','Description','Pk','Price','Qty','Total']],
+      body: tableData,
+      foot: [['','','','','Subtotal:','','$'+po.subtotal.toFixed(2)]],
+      styles: {fontSize:8, cellPadding:3},
+      headStyles: {fillColor:[26,26,26], fontSize:7},
+      footStyles: {fillColor:[240,240,234], fontStyle:'bold'},
+      columnStyles: {0:{cellWidth:50},1:{cellWidth:48},2:{cellWidth:180},3:{cellWidth:25,halign:'center'},
+        4:{cellWidth:45,halign:'right'},5:{cellWidth:30,halign:'center'},6:{cellWidth:55,halign:'right'}},
+      margin: {left:40, right:40},
+      didDrawPage: function() { drawSticker(); },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+    
+    // CS info block after table
+    if(po.cs) {
+      if(y > 730) { doc.addPage(); drawSticker(); y = 40; }
+      doc.setFontSize(7);
+      doc.setDrawColor(180);
+      doc.line(40, y, pageW-40, y);
+      y += 8;
+      doc.text('Note: Coop and/or Distributor adders may apply to drop-ship orders. ACA PaintCare Recovery Fees may apply', 40, y);
+      y += 16;
+    }
+  });
+  
+  if(y > 700) { doc.addPage(); drawSticker(); y = 40; }
+  doc.setFontSize(14);
+  doc.setFont(undefined,'bold');
+  doc.text('Grand Total: $'+data.grandTotal.toFixed(2), pageW-40, y, {align:'right'});
+  
+  const fn = 'BlishMize_DropShip'+(data.po?'_'+data.po:'')+'.pdf';
+  doc.save(fn.replace(/\s/g,'_'));
+}
+
+init();
+</script>
+</body>
+</html>
