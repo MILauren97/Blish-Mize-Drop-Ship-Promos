@@ -172,7 +172,7 @@ function init() {
         '<td>'+item.desc+'</td>'+
         '<td class="c">'+item.pk+'</td>'+
         priceCells+
-        '<td class="c"><input type="number" class="qty-input" min="0" step="1" value="" '+
+        '<td class="c"><input type="number" class="qty-input" min="0" step="'+item.pk+'" value="" '+
         'data-pi="'+pi+'" data-ii="'+ii+'" data-pk="'+item.pk+'" '+
         'onchange="qtyChanged(this)" oninput="qtyChanged(this)"></td>'+
         '<td class="line-total" id="plt-'+pi+'-'+ii+'"></td>';
@@ -246,14 +246,22 @@ function qtyChanged(input) {
   const pi = parseInt(input.dataset.pi);
   const ii = parseInt(input.dataset.ii);
   const pk = parseInt(input.dataset.pk);
+  const prev = parseInt(input.dataset.prev)||0;
   let qty = parseInt(input.value)||0;
   
-  // Enforce case packs but allow clearing to 0
-  if(qty > 0 && qty < pk) {
-    qty = 0; input.value = '';
-  } else if(qty > 0 && qty % pk !== 0) {
-    qty = Math.ceil(qty/pk)*pk; input.value = qty;
+  // Snap to case-pack multiples, detecting direction
+  if(qty > 0 && qty % pk !== 0) {
+    if(qty > prev) {
+      // Going UP — round up to next case
+      qty = Math.ceil(qty/pk)*pk;
+    } else {
+      // Going DOWN — round down to previous case (or 0)
+      qty = Math.floor(qty/pk)*pk;
+    }
   }
+  
+  input.value = qty > 0 ? qty : '';
+  input.dataset.prev = qty;
   
   const row = document.getElementById('prow-'+pi+'-'+ii);
   const ltEl = document.getElementById('plt-'+pi+'-'+ii);
@@ -265,7 +273,6 @@ function qtyChanged(input) {
     ltEl.textContent = '';
   }
   
-  // Recalculate all line totals for this promo (tier may have changed)
   recalcPromo(pi);
   updateTotals();
 }
